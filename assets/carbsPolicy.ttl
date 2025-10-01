@@ -1,0 +1,10 @@
+@prefix ex: <http://example.org/1707120963224#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:usagePolicyOwnerCarbs a odrl:Agreement ;
+  odrl:permission ex:permissionOwnerCarbs .
+ex:permissionOwnerCarbs a odrl:Permission ;
+  odrl:action odrl:modify, odrl:create, odrl:read ;
+  odrl:target <http://localhost:3000/ruben/preferences/carbs> ;
+  odrl:assignee <http://localhost:3000/ruben/profile/card#me> ;
+  odrl:assigner <http://localhost:3000/ruben/profile/card#me> .

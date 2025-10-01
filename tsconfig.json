@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "isolatedModules": true,
+    "inlineSourceMap": true,
+    "preserveConstEnums": true,
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+    "module": "node16",
+    "moduleResolution": "node16",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true
+  },
+  "include": ["src"]
+}

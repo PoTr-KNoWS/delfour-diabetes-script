@@ -1,0 +1,21 @@
+{
+  "name": "delfour-use-case",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsx scripts/run.ts"
+  },
+  "dependencies": {
+    "@rdfjs/types": "*",
+    "@types/n3": "^1.26.0",
+    "n3": "^1.26.0",
+    "rdf-vocabulary": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.14",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  },
+  "private": true
+}
