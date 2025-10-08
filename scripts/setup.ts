@@ -1,89 +1,39 @@
-import { NamedNode, Quad } from '@rdfjs/types';
+import { Quad } from '@rdfjs/types';
 import { DataFactory as DF, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   carbsPreferenceResource,
   chocolate,
-  cookies, delfourId,
+  cookies,
   lowSugarChocolate,
-  lowSugarCookies, policyContainer, rubenId,
+  lowSugarCookies,
+  policyContainer,
+  rubenId,
   sugarPreferenceResource
 } from './constants';
 import { performUmaRequest } from './uma-util';
-import { DCTERMS, DELFOUR, DPV, EX, ODRL, RDF, TE, XSD } from './vocabulary';
-
-// Adds dummy envelope data and stringifies everything as turtle
-export async function wrapInEnvelope(data: Quad[], subject: NamedNode): Promise<string> {
-  const quads = [ ...data ];
-  const envelope = DF.namedNode('http://example.com/ns/envelope');
-  const dataProv = DF.namedNode('http://example.com/ns/dataProvenance');
-  const policyProv = DF.namedNode('http://example.com/ns/policyProvenance');
-
-  const signedEnvelope = DF.namedNode('http://example.com/ns/signedEnvelope');
-  const signedDataProv = DF.namedNode('http://example.com/ns/signedDataProvenance');
-  const signedPolicyProv = DF.namedNode('http://example.com/ns/signedPolicyProvenance');
-
-  quads.push(
-    DF.quad(envelope, RDF.terms.type, TE.terms.TrustEnvelope),
-    DF.quad(envelope, DCTERMS.terms.issued, DF.literal(new Date().toISOString(), XSD.terms.dateTime)),
-    DF.quad(envelope, DPV.terms.hasData, subject),
-    DF.quad(envelope, ODRL.terms.hasPolicy, DF.namedNode('http://example.com/policies/policy')),
-    DF.quad(envelope, TE.terms.provenance, dataProv),
-    DF.quad(envelope, TE.terms.provenance, policyProv),
-    DF.quad(envelope, TE.terms.sign, signedEnvelope),
-  );
-
-  quads.push(
-    DF.quad(dataProv, RDF.terms.type, TE.terms.DataProvenance),
-    DF.quad(dataProv, DCTERMS.terms.issued, DF.literal(new Date().toISOString(), XSD.terms.dateTime)),
-    DF.quad(dataProv, TE.terms.sender, DF.namedNode(rubenId)),
-    DF.quad(dataProv, DPV.terms.hasDataSubject, subject),
-    DF.quad(dataProv, TE.terms.sign, signedDataProv),
-  );
-
-  quads.push(
-    DF.quad(policyProv, RDF.terms.type, TE.terms.PolicyProvenance),
-    DF.quad(policyProv, DCTERMS.terms.issued, DF.literal(new Date().toISOString(), XSD.terms.dateTime)),
-    DF.quad(policyProv, TE.terms.recipient, DF.namedNode(delfourId)),
-    DF.quad(policyProv, TE.terms.rightsHolder, DF.namedNode(rubenId)),
-    DF.quad(policyProv, TE.terms.sign, signedPolicyProv),
-  );
-
-  const writer = new Writer({
-    prefixes: {
-      dcterms: DCTERMS.namespace,
-      dpv: DPV.namespace,
-      te: TE.namespace,
-      odrl: ODRL.namespace,
-    }
-  });
-  writer.addQuads(quads);
-  return new Promise((resolve, reject) => {
-    writer.end((err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-}
+import { DELFOUR, EX } from './vocabulary';
 
 export async function setup() {
   // Write policies to policy container
-  await fetch(policyContainer, {
-    method: 'POST',
+  await fetch(path.posix.join(policyContainer, 'usagePolicyPod'), {
+    method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/podPolicy.ttl'), 'utf8'),
   });
-  await fetch(policyContainer, {
-    method: 'POST',
+  await fetch(path.posix.join(policyContainer, 'usagePolicyOwnerSugar'), {
+    method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/sugarPolicy.ttl'), 'utf8'),
   });
-  await fetch(policyContainer, {
-    method: 'POST',
+  await fetch(path.posix.join(policyContainer, 'usagePolicyDelfourSugar'), {
+    method: 'PUT',
+    headers: { 'content-type': 'text/turtle' },
+    body: await readFile(path.join(__dirname, '../assets/sugarPolicyDelfour.ttl'), 'utf8'),
+  });
+  await fetch(path.posix.join(policyContainer, 'usagePolicyOwnerCarbs'), {
+    method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/carbsPolicy.ttl'), 'utf8'),
   });
@@ -93,12 +43,12 @@ export async function setup() {
   await performUmaRequest(sugarPreferenceResource, rubenId, {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
-    body: await wrapInEnvelope([ DF.quad(rubenNamedNode, EX.terms.seeLowSugarAlternatives, DF.literal('true')) ], rubenNamedNode),
+    body: `<> <${EX.seeLowSugarAlternatives}> true .`,
   });
   await performUmaRequest(carbsPreferenceResource, rubenId, {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
-    body: await wrapInEnvelope([ DF.quad(rubenNamedNode, EX.terms.seeLowCarbAlternatives, DF.literal('true')) ], rubenNamedNode),
+    body: `<> <${EX.seeLowCarbAlternatives}> true .`,
   });
 
   // Write products to Delfour RS

@@ -3,10 +3,10 @@ import { joinUrl } from './constants';
 // Performs the necessary steps to acquire a resource from an UMA-protected RS.
 // Returns undefined if access was not granted.
 // Does not handle errors.
-export async function performUmaRequest(target: string, webId: string, init?: RequestInit): Promise<Response | undefined> {
+export async function performUmaRequest(target: string, webId: string, init?: RequestInit): Promise<{ response: Response, token?: string } | undefined> {
   const noTokenResponse = await fetch(target, init);
   if (noTokenResponse.status === 200) {
-    return noTokenResponse;
+    return { response: noTokenResponse };
   }
   const wwwAuthenticateHeader = noTokenResponse.headers.get("WWW-Authenticate")!
   const { as_uri, ticket } = Object.fromEntries(wwwAuthenticateHeader.replace(/^UMA /,'').split(', ').map(
@@ -20,8 +20,11 @@ export async function performUmaRequest(target: string, webId: string, init?: Re
   const content = {
     grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
     ticket,
-    claim_token: encodeURIComponent(webId),
-    claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
+    claim_token_format: 'urn:solidlab:uma:claims:formats:meta',
+    claim_token: JSON.stringify({
+      'urn:solidlab:uma:claims:formats:webid': encodeURIComponent(webId),
+      'http://www.w3.org/ns/odrl/2/purpose': 'urn:shopping:preferences',
+    }),
   };
 
   const asRequestResponse = await fetch(tokenEndpoint, {
@@ -39,5 +42,8 @@ export async function performUmaRequest(target: string, webId: string, init?: Re
 
   const headers = { 'Authorization': `${asResponse.token_type} ${asResponse.access_token}` };
 
-  return fetch(target, { ...init, headers: { ...init?.headers, ...headers } });
+  return {
+    response: await fetch(target, { ...init, headers: { ...init?.headers, ...headers } }),
+    token: asResponse.access_token,
+  };
 }

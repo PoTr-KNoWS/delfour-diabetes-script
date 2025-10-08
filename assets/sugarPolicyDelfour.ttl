@@ -2,9 +2,9 @@
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
 <> a odrl:Agreement ;
-  odrl:permission ex:permissionOwnerSugar .
-ex:permissionOwnerSugar a odrl:Permission ;
-  odrl:action odrl:modify, odrl:create, odrl:read ;
+  odrl:permission ex:permissionDelfourSugar .
+ex:permissionDelfourSugar a odrl:Permission ;
+  odrl:action odrl:read ;
   odrl:target <http://localhost:3000/ruben/preferences/sugar> ;
-  odrl:assignee <http://localhost:3000/ruben/profile/card#me> ;
+  odrl:assignee <http://localhost:3001/delfour/profile/card#me> ;
   odrl:assigner <http://localhost:3000/ruben/profile/card#me> .

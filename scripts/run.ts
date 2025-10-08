@@ -10,8 +10,24 @@ import { setup } from './setup';
 import { ShoppingCart } from './shopping-cart';
 import { performUmaRequest } from './uma-util';
 
+async function logToken(token?: string) {
+  if (!token) {
+    return;
+  }
+  const permissions = (await import('jose')).decodeJwt(token).permissions;
+  console.log('Access token', JSON.stringify(permissions, null, 2));
+  for (const permission of permissions as { policies: string[] }[]) {
+    for (const policy of permission.policies) {
+      const response = await fetch(policy);
+      console.log('Policy', policy, ':');
+      console.log(await response.text())
+    }
+  }
+}
+
+const preferences: Record<string, { sugar: boolean, carbs: boolean }> = {};
+
 (async () => {
-  // TODO: put this in separate script so the test script can be run multiple times without rewriting the data
   await setup();
 
   console.log('Activating scanner as', rubenId);
@@ -24,20 +40,23 @@ import { performUmaRequest } from './uma-util';
   console.log('Determining user preferences');
   const sugarResponse = await performUmaRequest(sugarPreferenceResource, delfourId);
   const carbsResponse = await performUmaRequest(carbsPreferenceResource, delfourId);
-  const sugarText = await sugarResponse?.text();
-  const carbsText = await carbsResponse?.text();
-  console.log('\nSugar preference response', sugarText);
-  console.log('\nCarbs response', carbsText);
-  const sugarPreferences = sugarText?.includes('"true"');
-  const carbsPreferences = carbsText?.includes('"true"');
+  const sugarText = await sugarResponse?.response.text();
+  const carbsText = await carbsResponse?.response.text();
+  console.log('\nSugar preference response');
+  console.log(sugarText);
+  await logToken(sugarResponse?.token);
+  console.log('\nCarbs preference response');
+  console.log(carbsText);
+  await logToken(carbsResponse?.token);
+  const sugarPreferences = sugarText?.includes('true');
+  const carbsPreferences = carbsText?.includes('true');
+  preferences[rubenId] = { sugar: Boolean(sugarPreferences), carbs: Boolean(carbsPreferences) };
 
   console.log('\nScanner can show low sugar alternatives:', sugarPreferences, '(undefined implies no permission to see)');
   console.log('Scanner can show low carbs alternatives:', carbsPreferences, '(undefined implies no permission to see)');
+  console.log('Storing preferences in local storage', preferences);
 
-  const cart = new ShoppingCart(rubenId, {
-    sugar: Boolean(sugarPreferences),
-    carbs: Boolean(carbsPreferences),
-  });
+  const cart = new ShoppingCart(rubenId, preferences[rubenId]);
 
   // Now to simulate the user scanning a resource
   console.log('\nScanning', cookies);
@@ -53,4 +72,6 @@ import { performUmaRequest } from './uma-util';
   console.log('\n\nFinished shopping, generating shopping ticket:\n');
   const ticket = cart.generateTicket();
   console.log(ticket);
+  delete preferences[rubenId];
+  console.log('\n\nRemoving preferences from local storage', preferences);
 })();

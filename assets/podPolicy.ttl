@@ -1,7 +1,7 @@
 @prefix ex: <http://example.org/1707120963224#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
-ex:usagePolicyPod a odrl:Agreement ;
+<> a odrl:Agreement ;
   odrl:permission ex:permissionPod .
 ex:permissionPod a odrl:Permission ;
   odrl:action odrl:modify, odrl:create, odrl:read ;

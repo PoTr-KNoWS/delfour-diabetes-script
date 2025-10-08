@@ -3,20 +3,59 @@
 This is a very initial implementation of the Delfour diabetes use case.
 The idea was to see what was possible without having to change any of the server implementations.
 
-3 servers are currently required:
-- A UMA server at `http://localhost:4000/` with a way to dynamically add policies.
-- A resource server at `http://localhost:3000/` with a pod for account `ruben`.
-- A resource server at `http://localhost:3001/` with public read/write access for everything.
+To have the necessary server setup, execute the following steps:
+- Clone the [UMA repository](https://github.com/SolidLabResearch/user-managed-access/).
+  checkout the `demo/trust-envelope-use-case` branch,
+  `yarn install`, and `yarn start:demo`. This will start the AS and RS of the user.
+- Run a default config CSS instance on port 3001. E.g., by cloning and install the
+  [CSS repository](https://github.com/CommunitySolidServer/CommunitySolidServer),
+  and running `npm start -- -p 3001`.
 
-The first two can be accomplished by cloning/installing
-the [UMA repository](https://github.com/SolidLabResearch/user-managed-access/)
-and running `yarn start:demo`.
-The last server can be done by starting a standard CSS instance with extra parameter `-p 3001`.
-
-Install dependencies here with `npm install`.
-The script in this repo can then be run with `npm start`.
+For this repository, install with `npm install`.
+The script in can then be run with `npm start`.
 
 `eye` should also be available on your path.
+
+[An example output can be found at the bottom of this document](#example-output),
+if you just want to see the result and not to go through all this hassle.
+
+## v0.0.2
+
+This is v0.0.2, [here is a comparison of the changes with v0.0.1](https://github.com/PoTr-KNoWS/delfour-diabetes-script/compare/v0.0.1...v0.0.2).
+
+All the relevant changes and comments will be noted in this section.
+The other sections were just slightly modified to match the current implementation.
+
+Short summary of the changes:
+- The scanner client sends a purpose claim when authenticating at the AS.
+- The AS keeps track of the client claims when generating an access token.
+- The AS exposes the above client claims through introspection of the corresponding token.
+- The AS includes the relevant policies in the generated access token.
+- The RS generates a (partial, as they are not signed) trust envelope
+  based on all of the above data points (with very hacky code).
+- The client script now stores the preferences in an internal record,
+  and explicitly clears the data at the end of a run.
+- The policies have been updates so there is only 1 per resource,
+  and the root subject is `<>`, to make them dereferenceable.
+
+Some implementation comments:
+- The two new data points that are exchanged are the relevant policies, and the client claims.
+  The first is done by including it in the access token, the second through introspection.
+  It can be discussed what is the best way for either.
+- Since the trust envelope is now generated on the RS,
+  it suddenly needs to have a lot more knowledge about the inner workings of the authorization.
+  An alternative would be that the AS generates it and provides it through an API to the RS so it just needs to append it,
+  but one issue there is that the AS does not know the actual resource identifiers.
+- It was not always clear to me what to exactly put in the trust envelope fields.
+  - There are 3 different `dcterms:issued` dates, are these supposed to all be the same,
+    and is it the same timestamp as the `iat` of the acces token?
+  - Who is the `sender` of the trust envelope, the AS or the RS?
+  - As recipient, I used the WebID claim of the client, but this might be too limiting.
+  - I determine the `rightsHolder` as the owner(s) as stored in the RS.
+    More correct might be to use the `assigner` fields of the relevant policies?
+    But then the RS would have to interpret those policies.
+  - The trust envelope spec does not have a predicate for "purpose" so I created a dummy one.
+    I'm not sure if it makes sense to include details like that in the trust envelope.
 
 ## Script flow
 
@@ -45,7 +84,7 @@ How the scanner determines where to find these preferences is an unanswered ques
 It uses the standard UMA flow to access the relevant resources,
 in this case the user's preference for low sugar and carbs alternatives.
 Due to the policies, the scanner only is allowed to read the former.
-The data is returned in a trust envelope.
+The data is returned in a trust envelope and the scanner stores the preferences
 
 ### 3. User scans product
 
@@ -55,8 +94,7 @@ The scanner then filters this result to only keep the relevant alternatives to s
 
 ### 4. User finishes shopping
 
-At this point, the scanner just generates a ticket here.
-The scanner should forget the preferences at this point.
+The scanner generates a ticket and removes the stored preferences.
 The scanner should probably also contact the Delfour server to log the transaction.
 
 ## Stubs
@@ -65,13 +103,12 @@ Many steps are hardcoded or insufficient, below some are detailed.
 
 ### Trust envelopes
 
-The server does not return trust envelopes.
-These are hardcoded triples added to the resources during setup to simulate these.
+This is a partial trust envelope, see the v0.0.2 section above for details.
 
 ### Parsing preferences
 
 The trust envelope bodies should be parsed and interpreted correctly.
-For now the script just checks if the turtle body has the string `"true"` in there somewhere.
+For now the script just checks if the turtle body has the string `true` in there somewhere.
 
 ### Scanner UMA interaction
 
@@ -174,3 +211,93 @@ including the trust envelope metadata.
 
 Four products are written to the Delfour RS, to simulate its product catalog.
 These include the hardcoded alternatives pointing to low-sugar products.
+
+## Example output
+```
+Activating scanner as http:/localhost:3000/ruben/profile/card#me
+Determining user preferences
+
+Sugar preference response
+@prefix dcterms: <http://purl.org/dc/terms/>.
+@prefix dpv: <https://w3id.org/dpv#>.
+@prefix ex: <http://example.com/ns/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/>.
+@prefix te: <https://w3id.org/trustenvelope#>.
+
+<> ex:seeLowSugarAlternatives true.
+ex:envelope a te:TrustEnvelope;
+    te:provenance ex:dataProvenance, ex:policyProvenance;
+    te:sign ex:signedEnvelope.
+ex:dataProvenance a te:DataProvenance;
+    te:sign ex:signedDataProvenance.
+ex:policyProvenance a te:PolicyProvenance;
+    te:sign ex:signedPolicyProvenance;
+    te:rightsHolder <../profile/card#me>.
+ex:envelope dpv:hasData <>.
+ex:dataProvenance dpv:hasDataSubject <>.
+ex:envelope odrl:hasPolicy <../../settings/policies/usagePolicyDelfourSugar>.
+ex:policyProvenance te:recipient <http://localhost:3001/delfour/profile/card#me>;
+    te:TODO-purpose <urn:shopping:preferences>.
+
+Access token [
+  {
+    "resource_id": "http://localhost:3000/ruben/preferences/sugar",
+    "resource_scopes": [
+      "urn:example:css:modes:read"
+    ],
+    "policies": [
+      "http://localhost:3000/settings/policies/usagePolicyDelfourSugar"
+    ]
+  }
+]
+Policy http://localhost:3000/settings/policies/usagePolicyDelfourSugar :
+@prefix ex: <http://example.org/1707120963224#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<> a odrl:Agreement ;
+  odrl:permission ex:permissionDelfourSugar .
+ex:permissionDelfourSugar a odrl:Permission ;
+  odrl:action odrl:read ;
+  odrl:target <http://localhost:3000/ruben/preferences/sugar> ;
+  odrl:assignee <http://localhost:3001/delfour/profile/card#me> ;
+  odrl:assigner <http://localhost:3000/ruben/profile/card#me> .
+
+
+Carbs preference response
+undefined
+
+Scanner can show low sugar alternatives: true (undefined implies no permission to see)
+Scanner can show low carbs alternatives: undefined (undefined implies no permission to see)
+Storing preferences in local storage {
+  'http:/localhost:3000/ruben/profile/card#me': { sugar: true, carbs: false }
+}
+
+Scanning http:/localhost:3001/delfour/products/BIS_001
+{
+  name: 'Classic Tea Biscuits',
+  price: 2.1,
+  lessSugar: [ 'http:/localhost:3001/delfour/products/BIS_101' ],
+  lessCarbs: []
+}
+
+Removing cookies and scanning low-sugar alternative http:/localhost:3001/delfour/products/BIS_101
+{
+  name: 'Low-Sugar Tea Biscuits',
+  price: 2.6,
+  lessSugar: [],
+  lessCarbs: []
+}
+
+
+Finished shopping, generating shopping ticket:
+
+Ticket #123
+For http:/localhost:3000/ruben/profile/card#me
+At Tue Oct 07 2025 15:16:20 GMT+0200 (Central European Summer Time)
+1x Low-Sugar Tea Biscuits: 2.6
+Total: 2.6
+Thank you for shopping at Delfour!
+
+
+Removing preferences from local storage {}
+```
