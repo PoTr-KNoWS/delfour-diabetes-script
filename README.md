@@ -19,11 +19,13 @@ The script in can then be run with `npm start`.
 [An example output can be found at the bottom of this document](#example-output),
 if you just want to see the result and not to go through all this hassle.
 
+A simple UI solution is also available.
+First run `npm run setup` to initializes the servers with the necessary data.
+Then run `npm run dev:ui` and go to <http://localhost:5173/>.
+
 ## v0.0.2
 
-This is v0.0.2, [here is a comparison of the changes with v0.0.1](https://github.com/PoTr-KNoWS/delfour-diabetes-script/compare/v0.0.1...v0.0.2).
-
-All the relevant changes and comments will be noted in this section.
+All the relevant changes and comments for v0.0.2 will be noted in this section.
 The other sections were just slightly modified to match the current implementation.
 
 Short summary of the changes:

@@ -5,10 +5,10 @@ import {
   lowSugarCookies,
   rubenId,
   sugarPreferenceResource
-} from './constants';
+} from '../src/constants';
+import { ShoppingCart } from '../src/shopping-cart';
+import { performUmaRequest } from '../src/uma-util';
 import { setup } from './setup';
-import { ShoppingCart } from './shopping-cart';
-import { performUmaRequest } from './uma-util';
 
 async function logToken(token?: string) {
   if (!token) {

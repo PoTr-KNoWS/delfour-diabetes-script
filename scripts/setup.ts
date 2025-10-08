@@ -1,38 +1,38 @@
-import { Quad } from '@rdfjs/types';
-import { DataFactory as DF, Writer } from 'n3';
+import { DataFactory as DF } from 'n3';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   carbsPreferenceResource,
   chocolate,
   cookies,
+  joinUrl,
   lowSugarChocolate,
   lowSugarCookies,
   policyContainer,
   rubenId,
   sugarPreferenceResource
-} from './constants';
-import { performUmaRequest } from './uma-util';
-import { DELFOUR, EX } from './vocabulary';
+} from '../src/constants';
+import { performUmaRequest } from '../src/uma-util';
+import { DELFOUR, EX } from '../src/vocabulary';
 
 export async function setup() {
   // Write policies to policy container
-  await fetch(path.posix.join(policyContainer, 'usagePolicyPod'), {
+  await fetch(joinUrl(policyContainer, 'usagePolicyPod'), {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/podPolicy.ttl'), 'utf8'),
   });
-  await fetch(path.posix.join(policyContainer, 'usagePolicyOwnerSugar'), {
+  await fetch(joinUrl(policyContainer, 'usagePolicyOwnerSugar'), {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/sugarPolicy.ttl'), 'utf8'),
   });
-  await fetch(path.posix.join(policyContainer, 'usagePolicyDelfourSugar'), {
+  await fetch(joinUrl(policyContainer, 'usagePolicyDelfourSugar'), {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/sugarPolicyDelfour.ttl'), 'utf8'),
   });
-  await fetch(path.posix.join(policyContainer, 'usagePolicyOwnerCarbs'), {
+  await fetch(joinUrl(policyContainer, 'usagePolicyOwnerCarbs'), {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body: await readFile(path.join(__dirname, '../assets/carbsPolicy.ttl'), 'utf8'),
@@ -105,3 +105,7 @@ export async function setup() {
   schema:price "2.20"^^xsd:decimal .`
   });
 }
+
+(async () => {
+  await setup();
+})();

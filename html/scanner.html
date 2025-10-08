@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delfour Shopping Scanner</title>
+  <style>
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+      }
+
+      .container {
+          max-width: 900px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          overflow: hidden;
+      }
+
+      .header {
+          background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+      }
+
+      .header h1 {
+          font-size: 2.5em;
+          margin-bottom: 10px;
+      }
+
+      .user-info {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+          backdrop-filter: blur(10px);
+      }
+
+      .scanner-section, .cart-section {
+          padding: 30px;
+      }
+
+      .scanner-section {
+          border-bottom: 2px solid #f0f0f0;
+      }
+
+      .form-group {
+          margin-bottom: 20px;
+      }
+
+      .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 600;
+          color: #333;
+      }
+
+      select, button {
+          padding: 12px 20px;
+          border-radius: 8px;
+          border: 2px solid #e0e0e0;
+          font-size: 16px;
+          transition: all 0.3s ease;
+      }
+
+      select {
+          width: 100%;
+          background: white;
+          cursor: pointer;
+      }
+
+      select:focus {
+          border-color: #764ba2;
+          outline: none;
+      }
+
+      button {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-weight: 600;
+          margin-right: 10px;
+          transform: translateY(0);
+      }
+
+      button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+      }
+
+      button:active {
+          transform: translateY(0);
+      }
+
+      button.secondary {
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      button.danger {
+          background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+          padding: 8px 15px;
+          font-size: 14px;
+      }
+
+      .alternatives {
+          margin-top: 20px;
+          padding: 20px;
+          background: #f8f8ff;
+          border-radius: 10px;
+          display: none;
+      }
+
+      .alternatives.show {
+          display: block;
+          animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+
+      .alternative-item {
+          padding: 15px;
+          background: white;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          transition: transform 0.2s ease;
+      }
+
+      .alternative-item:hover {
+          transform: translateX(5px);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      }
+
+      .cart-item {
+          padding: 15px;
+          background: #f8f8ff;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
+      }
+
+      .cart-item-info {
+          flex: 1;
+      }
+
+      .cart-item-name {
+          font-weight: 600;
+          color: #333;
+      }
+
+      .cart-item-price {
+          color: #667eea;
+          font-size: 1.1em;
+          margin-top: 5px;
+      }
+
+      .cart-empty {
+          text-align: center;
+          color: #999;
+          padding: 40px;
+          font-size: 1.1em;
+      }
+
+      .cart-total {
+          margin-top: 20px;
+          padding: 20px;
+          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+          border-radius: 10px;
+          text-align: right;
+      }
+
+      .cart-total h3 {
+          color: #333;
+          font-size: 1.5em;
+      }
+
+      .receipt {
+          display: none;
+          padding: 30px;
+          background: #f8f8ff;
+          border-radius: 10px;
+          margin-top: 20px;
+          font-family: 'Courier New', monospace;
+          border: 2px dashed #667eea;
+      }
+
+      .receipt.show {
+          display: block;
+          animation: fadeIn 0.5s ease;
+      }
+
+      .loading {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border: 3px solid rgba(255,255,255,0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 1s ease-in-out infinite;
+          margin-left: 10px;
+      }
+
+      @keyframes spin {
+          to { transform: rotate(360deg); }
+      }
+
+      .preferences {
+          display: flex;
+          gap: 20px;
+          margin-top: 10px;
+      }
+
+      .preference-badge {
+          padding: 5px 12px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 20px;
+          font-size: 0.9em;
+      }
+
+      .status-message {
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: none;
+      }
+
+      .status-message.show {
+          display: block;
+          animation: fadeIn 0.5s ease;
+      }
+
+      .status-message.success {
+          background: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+      }
+
+      .status-message.error {
+          background: #f8d7da;
+          color: #721c24;
+          border: 1px solid #f5c6cb;
+      }
+
+      .alternative-label {
+          background: #667eea;
+          color: white;
+          padding: 3px 8px;
+          border-radius: 5px;
+          font-size: 0.8em;
+          margin-left: 10px;
+      }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛒 Delfour Shopping Scanner</h1>
+      <div class="user-info">
+        <div><strong>User:</strong> <span id="userId">http://localhost:3000/ruben/profile/card#me</span></div>
+        <div class="preferences">
+          <div class="preference-badge" id="sugarPref">🍬 Low Sugar: Loading...</div>
+          <div class="preference-badge" id="carbsPref">🍞 Low Carbs: Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scanner-section">
+      <h2>📱 Product Scanner</h2>
+
+      <div class="status-message" id="statusMessage"></div>
+
+      <div class="form-group">
+        <label for="productSelect">Select a product to scan:</label>
+        <select id="productSelect">
+          <option value="">-- Choose a product --</option>
+          <option value="http://localhost:3001/delfour/products/BIS_001">Classic Tea Biscuits (€2.10)</option>
+          <option value="http://localhost:3001/delfour/products/BIS_101">Low-Sugar Tea Biscuits (€2.60)</option>
+          <option value="http://localhost:3001/delfour/products/CHO_001">Dark Chocolate Bar (€3.50)</option>
+          <option value="http://localhost:3001/delfour/products/CHO_101">Sugar-Free Dark Chocolate (€4.20)</option>
+        </select>
+      </div>
+
+      <button onclick="scanProduct()">🔍 Scan Product</button>
+
+      <div class="alternatives" id="alternatives">
+        <h3>💡 Available Alternatives</h3>
+        <div id="alternativesList"></div>
+      </div>
+    </div>
+
+    <div class="cart-section">
+      <h2>🛒 Shopping Cart</h2>
+      <div id="cartItems">
+        <div class="cart-empty">Your cart is empty. Start scanning products!</div>
+      </div>
+
+      <div class="cart-total" id="cartTotal" style="display: none;">
+        <h3>Total: €<span id="totalAmount">0.00</span></h3>
+        <button onclick="checkout()" style="margin-top: 15px;">✓ Checkout</button>
+        <button onclick="clearCart()" class="secondary" style="margin-top: 15px;">🗑️ Clear Cart</button>
+      </div>
+
+      <div class="receipt" id="receipt"></div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let cart = [];
+    let preferences = { sugar: false, carbs: false };
+    let currentProduct = null;
+    let products = {};
+
+    // Initialize scanner on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initializeScanner();
+    });
+
+    async function initializeScanner() {
+      showStatus('Activating scanner and loading preferences...', 'success');
+
+      // Simulate fetching user preferences
+      // In the real implementation, this would call the actual TypeScript functions
+      setTimeout(() => {
+        preferences = { sugar: true, carbs: false };
+        document.getElementById('sugarPref').textContent = '🍬 Low Sugar: ' + (preferences.sugar ? 'Yes ✓' : 'No ✗');
+        document.getElementById('carbsPref').textContent = '🍞 Low Carbs: ' + (preferences.carbs ? 'Yes ✓' : 'No ✗');
+
+        // Initialize product database
+        products = {
+          'http://localhost:3001/delfour/products/BIS_001': {
+            name: 'Classic Tea Biscuits',
+            price: 2.10,
+            lessSugar: ['http://localhost:3001/delfour/products/BIS_101'],
+            lessCarbs: []
+          },
+          'http://localhost:3001/delfour/products/BIS_101': {
+            name: 'Low-Sugar Tea Biscuits',
+            price: 2.60,
+            lessSugar: [],
+            lessCarbs: []
+          },
+          'http://localhost:3001/delfour/products/CHO_001': {
+            name: 'Dark Chocolate Bar',
+            price: 3.50,
+            lessSugar: ['http://localhost:3001/delfour/products/CHO_101'],
+            lessCarbs: []
+          },
+          'http://localhost:3001/delfour/products/CHO_101': {
+            name: 'Sugar-Free Dark Chocolate',
+            price: 4.20,
+            lessSugar: [],
+            lessCarbs: []
+          }
+        };
+
+        hideStatus();
+      }, 1000);
+    }
+
+    function showStatus(message, type = 'success') {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.textContent = message;
+      statusEl.className = `status-message ${type} show`;
+    }
+
+    function hideStatus() {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.className = 'status-message';
+    }
+
+    async function scanProduct() {
+      const select = document.getElementById('productSelect');
+      const productUrl = select.value;
+
+      if (!productUrl) {
+        showStatus('Please select a product to scan', 'error');
+        setTimeout(hideStatus, 3000);
+        return;
+      }
+
+      showStatus('Scanning product...', 'success');
+
+      // Simulate async product fetch
+      setTimeout(() => {
+        currentProduct = products[productUrl];
+
+        if (currentProduct) {
+          displayAlternatives(currentProduct, productUrl);
+          hideStatus();
+        } else {
+          showStatus('Product not found', 'error');
+          setTimeout(hideStatus, 3000);
+        }
+      }, 500);
+    }
+
+    function displayAlternatives(product, productUrl) {
+      const alternativesDiv = document.getElementById('alternatives');
+      const alternativesList = document.getElementById('alternativesList');
+
+      alternativesList.innerHTML = '';
+
+      // Add the scanned product itself
+      const productDiv = document.createElement('div');
+      productDiv.className = 'alternative-item';
+      productDiv.innerHTML = `
+                <div>
+                    <strong>${product.name}</strong>
+                    <div style="color: #667eea; margin-top: 5px;">€${product.price.toFixed(2)}</div>
+                </div>
+                <button onclick="addToCart('${productUrl}')">Add to Cart</button>
+            `;
+      alternativesList.appendChild(productDiv);
+
+      // Check for alternatives based on preferences
+      let hasAlternatives = false;
+
+      if (preferences.sugar && product.lessSugar.length > 0) {
+        hasAlternatives = true;
+        product.lessSugar.forEach(altUrl => {
+          const alt = products[altUrl];
+          if (alt) {
+            const altDiv = document.createElement('div');
+            altDiv.className = 'alternative-item';
+            altDiv.innerHTML = `
+                            <div>
+                                <strong>${alt.name}</strong>
+                                <span class="alternative-label">Low Sugar Alternative</span>
+                                <div style="color: #667eea; margin-top: 5px;">€${alt.price.toFixed(2)}</div>
+                            </div>
+                            <button onclick="addToCart('${altUrl}')">Add to Cart</button>
+                        `;
+            alternativesList.appendChild(altDiv);
+          }
+        });
+      }
+
+      if (preferences.carbs && product.lessCarbs.length > 0) {
+        hasAlternatives = true;
+        product.lessCarbs.forEach(altUrl => {
+          const alt = products[altUrl];
+          if (alt) {
+            const altDiv = document.createElement('div');
+            altDiv.className = 'alternative-item';
+            altDiv.innerHTML = `
+                            <div>
+                                <strong>${alt.name}</strong>
+                                <span class="alternative-label">Low Carbs Alternative</span>
+                                <div style="color: #667eea; margin-top: 5px;">€${alt.price.toFixed(2)}</div>
+                            </div>
+                            <button onclick="addToCart('${altUrl}')">Add to Cart</button>
+                        `;
+            alternativesList.appendChild(altDiv);
+          }
+        });
+      }
+
+      if (!hasAlternatives && alternativesList.children.length === 1) {
+        const noAltDiv = document.createElement('div');
+        noAltDiv.style.cssText = 'padding: 10px; color: #666; font-style: italic;';
+        noAltDiv.textContent = 'No alternatives available based on your preferences.';
+        alternativesList.appendChild(noAltDiv);
+      }
+
+      alternativesDiv.className = 'alternatives show';
+    }
+
+    function addToCart(productUrl) {
+      const product = products[productUrl];
+      if (product) {
+        cart.push({
+          url: productUrl,
+          name: product.name,
+          price: product.price
+        });
+        updateCartDisplay();
+        showStatus(`${product.name} added to cart!`, 'success');
+        setTimeout(hideStatus, 2000);
+      }
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      const cartItemsDiv = document.getElementById('cartItems');
+      const cartTotalDiv = document.getElementById('cartTotal');
+      const totalAmountSpan = document.getElementById('totalAmount');
+
+      if (cart.length === 0) {
+        cartItemsDiv.innerHTML = '<div class="cart-empty">Your cart is empty. Start scanning products!</div>';
+        cartTotalDiv.style.display = 'none';
+      } else {
+        cartItemsDiv.innerHTML = '';
+        let total = 0;
+
+        cart.forEach((item, index) => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'cart-item';
+          itemDiv.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">€${item.price.toFixed(2)}</div>
+                        </div>
+                        <button class="danger" onclick="removeFromCart(${index})">Remove</button>
+                    `;
+          cartItemsDiv.appendChild(itemDiv);
+          total += item.price;
+        });
+
+        totalAmountSpan.textContent = total.toFixed(2);
+        cartTotalDiv.style.display = 'block';
+      }
+    }
+
+    function clearCart() {
+      cart = [];
+      updateCartDisplay();
+      document.getElementById('receipt').className = 'receipt';
+    }
+
+    function checkout() {
+      if (cart.length === 0) {
+        showStatus('Your cart is empty!', 'error');
+        setTimeout(hideStatus, 3000);
+        return;
+      }
+
+      const receiptDiv = document.getElementById('receipt');
+      const ticketNumber = Math.floor(Math.random() * 1000) + 100;
+      const date = new Date().toLocaleString();
+      let total = 0;
+
+      let receiptHTML = `
+                <h3>🧾 Shopping Receipt</h3>
+                <div style="margin-top: 20px;">
+                    <strong>Ticket #${ticketNumber}</strong><br>
+                    For: ${document.getElementById('userId').textContent}<br>
+                    Date: ${date}<br>
+                    <hr style="margin: 15px 0; border: none; border-top: 1px dashed #667eea;">
+            `;
+
+      // Group items by name and count
+      const itemCounts = {};
+      cart.forEach(item => {
+        if (itemCounts[item.name]) {
+          itemCounts[item.name].count++;
+        } else {
+          itemCounts[item.name] = { ...item, count: 1 };
+        }
+        total += item.price;
+      });
+
+      Object.values(itemCounts).forEach(item => {
+        receiptHTML += `${item.count}x ${item.name}: €${(item.price * item.count).toFixed(2)}<br>`;
+      });
+
+      receiptHTML += `
+                <hr style="margin: 15px 0; border: none; border-top: 1px dashed #667eea;">
+                <strong>Total: €${total.toFixed(2)}</strong><br>
+                <div style="margin-top: 20px; text-align: center; color: #667eea;">
+                    Thank you for shopping at Delfour!
+                </div>
+                </div>
+            `;
+
+      receiptDiv.innerHTML = receiptHTML;
+      receiptDiv.className = 'receipt show';
+
+      // Clear cart after checkout
+      cart = [];
+      updateCartDisplay();
+
+      // Hide alternatives
+      document.getElementById('alternatives').className = 'alternatives';
+
+      // Reset product selection
+      document.getElementById('productSelect').value = '';
+
+      showStatus('Checkout complete! Thank you for shopping!', 'success');
+    }
+  </script>
+</body>
+</html>

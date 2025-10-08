@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Delfour — shopping UI</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 20px; }
+      select, button { margin: 4px; }
+      #alternatives li, #cart li { margin: 6px 0; }
+      pre { background: #f6f8fa; padding: 10px; border-radius: 6px; max-height: 40vh; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>Delfour shopping simulation</h1>
+
+  <input id="userId" type="text" style="width: 300px;" />
+  <button id="startBtn">Start</button>
+
+  <h3>Preferences</h3>
+  <pre id="prefs">{}</pre>
+
+  <h3>Products</h3>
+  <select id="product"></select>
+  <button id="scanBtn">Scan</button>
+
+  <h3>Alternatives</h3>
+  <ul id="alternatives"></ul>
+
+  <h3>Shopping Cart</h3>
+  <ul id="cart"></ul>
+
+  <button id="finishBtn">Finish</button>
+
+  <h3>Output</h3>
+  <pre id="output"></pre>
+
+  <script type="module" src="src/ui.ts"></script>
+</body>
+</html>

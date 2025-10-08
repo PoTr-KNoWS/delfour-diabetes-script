@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 export const uma = 'http://localhost:4000/uma';
 export const rsRuben = 'http://localhost:3000';
 export const rsDelfour = 'http://localhost:3001';
@@ -18,6 +16,6 @@ export const lowSugarCookies = joinUrl(rsDelfour, '/delfour/products/BIS_101');
 export const chocolate = joinUrl(rsDelfour, '/delfour/products/CHOC_050');
 export const lowSugarChocolate = joinUrl(rsDelfour, '/delfour/products/CHOC_150');
 
-export function joinUrl(...parts: string[]): string {
-  return path.posix.join(...parts);
+export function joinUrl(root: string, part: string): string {
+  return new URL(part, root.replace(/\/*$/u, '/')).href;
 }
