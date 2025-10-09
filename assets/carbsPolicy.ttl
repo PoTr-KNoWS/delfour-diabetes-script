@@ -6,5 +6,5 @@
 ex:permissionOwnerCarbs a odrl:Permission ;
   odrl:action odrl:modify, odrl:create, odrl:read ;
   odrl:target <http://localhost:3000/ruben/preferences/carbs> ;
-  odrl:assignee <http://localhost:3000/ruben/profile/card#me> ;
-  odrl:assigner <http://localhost:3000/ruben/profile/card#me> .
+  odrl:assignee <http://localhost:3000/123-456-789/profile/card#me> ;
+  odrl:assigner <http://localhost:3000/123-456-789/profile/card#me> .

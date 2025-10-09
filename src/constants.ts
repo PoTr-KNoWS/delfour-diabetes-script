@@ -5,7 +5,7 @@ export const rsDelfour = 'http://localhost:3001';
 // The demo setup is currently hardcoded to work with this specific container (due to cold start issues)
 export const policyContainer = joinUrl(rsRuben, '/settings/policies/');
 
-export const rubenId = joinUrl(rsRuben, '/ruben/profile/card#me');
+export const rubenId = joinUrl(rsRuben, '/123-456-789/profile/card#me');
 export const delfourId = joinUrl(rsDelfour, '/delfour/profile/card#me');
 
 export const sugarPreferenceResource = joinUrl(rsRuben, '/ruben/preferences/sugar');

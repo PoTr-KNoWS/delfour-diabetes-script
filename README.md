@@ -5,7 +5,7 @@ The idea was to see what was possible without having to change any of the server
 
 To have the necessary server setup, execute the following steps:
 - Clone the [UMA repository](https://github.com/SolidLabResearch/user-managed-access/).
-  checkout the `demo/trust-envelope-use-case` branch,
+  checkout the `delfour-sugar-use-case` tag,
   `yarn install`, and `yarn start:demo`. This will start the AS and RS of the user.
 - Run a default config CSS instance on port 3001. E.g., by cloning and install the
   [CSS repository](https://github.com/CommunitySolidServer/CommunitySolidServer),
@@ -216,7 +216,7 @@ These include the hardcoded alternatives pointing to low-sugar products.
 
 ## Example output
 ```
-Activating scanner as http:/localhost:3000/ruben/profile/card#me
+Activating scanner as http:/localhost:3000/123-456-789/profile/card#me
 Determining user preferences
 
 Sugar preference response
@@ -262,7 +262,7 @@ ex:permissionDelfourSugar a odrl:Permission ;
   odrl:action odrl:read ;
   odrl:target <http://localhost:3000/ruben/preferences/sugar> ;
   odrl:assignee <http://localhost:3001/delfour/profile/card#me> ;
-  odrl:assigner <http://localhost:3000/ruben/profile/card#me> .
+  odrl:assigner <http://localhost:3000/123-456-789/profile/card#me> .
 
 
 Carbs preference response
@@ -271,7 +271,7 @@ undefined
 Scanner can show low sugar alternatives: true (undefined implies no permission to see)
 Scanner can show low carbs alternatives: undefined (undefined implies no permission to see)
 Storing preferences in local storage {
-  'http:/localhost:3000/ruben/profile/card#me': { sugar: true, carbs: false }
+  'http:/localhost:3000/123-456-789/profile/card#me': { sugar: true, carbs: false }
 }
 
 Scanning http:/localhost:3001/delfour/products/BIS_001
@@ -294,7 +294,7 @@ Removing cookies and scanning low-sugar alternative http:/localhost:3001/delfour
 Finished shopping, generating shopping ticket:
 
 Ticket #123
-For http:/localhost:3000/ruben/profile/card#me
+For http:/localhost:3000/123-456-789/profile/card#me
 At Tue Oct 07 2025 15:16:20 GMT+0200 (Central European Summer Time)
 1x Low-Sugar Tea Biscuits: 2.6
 Total: 2.6
