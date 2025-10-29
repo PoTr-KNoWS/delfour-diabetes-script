@@ -1,7 +1,8 @@
 import { createVocabulary } from 'rdf-vocabulary';
+import { rsDelfour } from './constants';
 
 export const DELFOUR = createVocabulary(
-  'http://localhost:3001/delfour/',
+  rsDelfour,
   'lessCarbs',
   'lessSugar',
 );

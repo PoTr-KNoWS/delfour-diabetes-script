@@ -1,6 +1,7 @@
-export const uma = 'http://localhost:4000/uma';
-export const rsRuben = 'http://localhost:3000';
-export const rsDelfour = 'http://localhost:3001';
+
+export const uma = process.env.DEMO_UMA ?? 'http://localhost:4000/uma';
+export const rsRuben = process.env.DEMO_RUBEN ?? 'http://localhost:3000';
+export const rsDelfour = process.env.DEMO_DELFOUR ?? 'http://localhost:3001';
 
 // The demo setup is currently hardcoded to work with this specific container (due to cold start issues)
 export const policyContainer = joinUrl(rsRuben, '/settings/policies/');
